@@ -14,8 +14,7 @@ var rootCmd = &cobra.Command{
 
 Complete documentation is available at https://github.com/hassek/bc-cli`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Welcome to Butler Coffee CLI!")
-		fmt.Println("Use 'bc-cli --help' to see available commands.")
+		_ = cmd.Help()
 	},
 }
 
