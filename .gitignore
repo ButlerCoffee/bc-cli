@@ -42,3 +42,10 @@ secrets.yaml
 organization_favicons
 organization_logos
 .claude
+
+# Go binaries
+bc-cli
+*.exe
+*.dll
+*.so
+*.dylib
