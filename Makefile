@@ -1,3 +1,6 @@
+compile:
+	go build -o bc-cli .
+
 install:
 	pip install pip -U
 	pip install -r requirements-dev.txt

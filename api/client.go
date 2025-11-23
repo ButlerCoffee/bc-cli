@@ -26,6 +26,20 @@ func NewClient(cfg *config.Config) *Client {
 }
 
 func (c *Client) doRequest(method, path string, body any, requireAuth bool) (*http.Response, error) {
+	// Check if token needs refresh before making authenticated request
+	if requireAuth && c.Config.IsAuthenticated() {
+		if c.Config.IsTokenExpired() {
+			if c.Config.IsRefreshTokenExpired() {
+				return nil, fmt.Errorf("refresh token expired, please login again")
+			}
+
+			// Attempt to refresh the token
+			if err := c.RefreshToken(); err != nil {
+				return nil, fmt.Errorf("failed to refresh token: %w", err)
+			}
+		}
+	}
+
 	var reqBody io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -51,6 +65,42 @@ func (c *Client) doRequest(method, path string, body any, requireAuth bool) (*ht
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
+	}
+
+	// If we get 401 Unauthorized and this is an authenticated request, try to refresh and retry once
+	if requireAuth && resp.StatusCode == 401 && !c.Config.IsRefreshTokenExpired() {
+		_ = resp.Body.Close()
+
+		// Attempt to refresh the token
+		if refreshErr := c.RefreshToken(); refreshErr != nil {
+			return resp, nil // Return original 401 response
+		}
+
+		// Retry the request with the new token
+		if body != nil {
+			// Re-read the body for the retry
+			jsonData, err := json.Marshal(body)
+			if err != nil {
+				return resp, nil // Return original 401 response
+			}
+			reqBody = bytes.NewBuffer(jsonData)
+		}
+
+		retryReq, err := http.NewRequest(method, url, reqBody)
+		if err != nil {
+			return resp, nil // Return original 401 response
+		}
+
+		retryReq.Header.Set("Content-Type", "application/json")
+		retryReq.Header.Set("Accept", "application/json")
+		retryReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Config.AccessToken))
+
+		retryResp, err := c.HTTPClient.Do(retryReq)
+		if err != nil {
+			return resp, nil // Return original 401 response
+		}
+
+		return retryResp, nil
 	}
 
 	return resp, nil

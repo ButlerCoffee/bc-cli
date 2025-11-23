@@ -1,5 +1,7 @@
 package api
 
+import "fmt"
+
 type RegisterRequest struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -8,9 +10,15 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	ID           string `json:"id"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	Meta struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"meta"`
+	Data struct {
+		ID           string `json:"id"`
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	} `json:"data"`
 }
 
 type LoginRequest struct {
@@ -19,8 +27,17 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Access  string `json:"access"`
-	Refresh string `json:"refresh"`
+	Meta struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"meta"`
+	Data struct {
+		AccessToken            string `json:"access_token"`
+		RefreshToken           string `json:"refresh_token"`
+		ExpiresAt              string `json:"expires_at"`
+		RefreshTokenExpiresAt  string `json:"refresh_token_expires_at"`
+		UserID                 string `json:"user_id"`
+	} `json:"data"`
 }
 
 func (c *Client) Register(req RegisterRequest) (*RegisterResponse, error) {
@@ -35,8 +52,8 @@ func (c *Client) Register(req RegisterRequest) (*RegisterResponse, error) {
 	}
 
 	// Save tokens automatically after successful registration
-	c.Config.AccessToken = result.AccessToken
-	c.Config.RefreshToken = result.RefreshToken
+	c.Config.AccessToken = result.Data.AccessToken
+	c.Config.RefreshToken = result.Data.RefreshToken
 
 	if err := c.Config.Save(); err != nil {
 		return nil, err
@@ -56,12 +73,62 @@ func (c *Client) Login(req LoginRequest) (*LoginResponse, error) {
 		return nil, err
 	}
 
-	c.Config.AccessToken = result.Access
-	c.Config.RefreshToken = result.Refresh
+	c.Config.AccessToken = result.Data.AccessToken
+	c.Config.RefreshToken = result.Data.RefreshToken
+	c.Config.ExpiresAt = result.Data.ExpiresAt
+	c.Config.RefreshTokenExpiresAt = result.Data.RefreshTokenExpiresAt
 
 	if err := c.Config.Save(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to save config: %w", err)
 	}
 
 	return &result, nil
+}
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+type RefreshTokenResponse struct {
+	Meta struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"meta"`
+	Data struct {
+		AccessToken            string `json:"access_token"`
+		RefreshToken           string `json:"refresh_token"`
+		ExpiresAt              string `json:"expires_at"`
+		RefreshTokenExpiresAt  string `json:"refresh_token_expires_at"`
+	} `json:"data"`
+}
+
+func (c *Client) RefreshToken() error {
+	if c.Config.RefreshToken == "" {
+		return fmt.Errorf("no refresh token available")
+	}
+
+	req := RefreshTokenRequest{
+		RefreshToken: c.Config.RefreshToken,
+	}
+
+	resp, err := c.doRequest("POST", "/api/core/v1/users/token/refresh", req, false)
+	if err != nil {
+		return fmt.Errorf("failed to refresh token: %w", err)
+	}
+
+	var result RefreshTokenResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return fmt.Errorf("failed to parse refresh token response: %w", err)
+	}
+
+	c.Config.AccessToken = result.Data.AccessToken
+	c.Config.RefreshToken = result.Data.RefreshToken
+	c.Config.ExpiresAt = result.Data.ExpiresAt
+	c.Config.RefreshTokenExpiresAt = result.Data.RefreshTokenExpiresAt
+
+	if err := c.Config.Save(); err != nil {
+		return fmt.Errorf("failed to save config after refresh: %w", err)
+	}
+
+	return nil
 }

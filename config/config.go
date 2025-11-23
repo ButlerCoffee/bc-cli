@@ -2,8 +2,10 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -13,9 +15,11 @@ const (
 )
 
 type Config struct {
-	APIURL       string `json:"api_url"`
-	AccessToken  string `json:"access_token,omitempty"`
-	RefreshToken string `json:"refresh_token,omitempty"`
+	APIURL                string `json:"api_url"`
+	AccessToken           string `json:"access_token,omitempty"`
+	RefreshToken          string `json:"refresh_token,omitempty"`
+	ExpiresAt             string `json:"expires_at,omitempty"`
+	RefreshTokenExpiresAt string `json:"refresh_token_expires_at,omitempty"`
 }
 
 func GetAPIURL() string {
@@ -87,4 +91,43 @@ func (c *Config) Save() error {
 
 func (c *Config) IsAuthenticated() bool {
 	return c.AccessToken != ""
+}
+
+func (c *Config) IsTokenExpired() bool {
+	if c.ExpiresAt == "" {
+		return false
+	}
+
+	expiresAt, err := parseTimestamp(c.ExpiresAt)
+	if err != nil {
+		return true
+	}
+
+	// Consider token expired 30 seconds before actual expiration for safety margin
+	return time.Now().Add(30 * time.Second).After(expiresAt)
+}
+
+func (c *Config) IsRefreshTokenExpired() bool {
+	if c.RefreshTokenExpiresAt == "" {
+		return false
+	}
+
+	expiresAt, err := parseTimestamp(c.RefreshTokenExpiresAt)
+	if err != nil {
+		return true
+	}
+
+	return time.Now().After(expiresAt)
+}
+
+// parseTimestamp handles both Unix timestamp (milliseconds) and RFC3339 formats
+func parseTimestamp(timestamp string) (time.Time, error) {
+	// Try parsing as Unix timestamp in milliseconds (string format)
+	var unixMs int64
+	if _, err := fmt.Sscanf(timestamp, "%d", &unixMs); err == nil {
+		return time.Unix(unixMs/1000, (unixMs%1000)*1000000), nil
+	}
+
+	// Fallback to RFC3339 format
+	return time.Parse(time.RFC3339, timestamp)
 }

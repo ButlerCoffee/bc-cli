@@ -90,7 +90,7 @@ func runSignup(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("\n✓ Account created successfully!")
-	fmt.Printf("User ID: %s\n", resp.ID)
+	fmt.Printf("User ID: %s\n", resp.Data.ID)
 	fmt.Println("\nYou are now logged in and ready to use Butler Coffee CLI!")
 
 	return nil
