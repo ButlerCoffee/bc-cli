@@ -4,6 +4,7 @@ compile:
 install:
 	pip install pip -U
 	pip install -r requirements-dev.txt
+	go install golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest
 	pre-commit install
 	pre-commit autoupdate
 	pre-commit install-hooks

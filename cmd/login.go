@@ -9,6 +9,7 @@ import (
 
 	"github.com/hassek/bc-cli/api"
 	"github.com/hassek/bc-cli/config"
+	"github.com/hassek/bc-cli/templates"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -31,12 +32,14 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	if cfg.IsAuthenticated() {
-		fmt.Println("You are already logged in.")
-		fmt.Print("Do you want to login with a different account? (y/N): ")
+		if err := templates.RenderToStdout(templates.AlreadyLoggedInTemplate, nil); err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
 		response = strings.ToLower(strings.TrimSpace(response))
-		if response != "y" && response != "yes" {
+		// Default to yes when user presses Enter
+		if response == "n" || response == "no" {
 			return nil
 		}
 	}
@@ -60,7 +63,9 @@ func runLogin(cmd *cobra.Command, args []string) error {
 
 	client := api.NewClient(cfg)
 
-	fmt.Println("\nAuthenticating...")
+	if err := templates.RenderToStdout(templates.AuthenticatingTemplate, nil); err != nil {
+		return fmt.Errorf("failed to render template: %w", err)
+	}
 	_, err = client.Login(api.LoginRequest{
 		Username: username,
 		Password: password,
@@ -69,8 +74,9 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("login failed: %w", err)
 	}
 
-	fmt.Println("\n✓ Successfully logged in!")
-	fmt.Printf("Welcome back, %s!\n", username)
+	if err := templates.RenderToStdout(templates.LoginSuccessTemplate, struct{ Username string }{Username: username}); err != nil {
+		return fmt.Errorf("failed to render template: %w", err)
+	}
 
 	return nil
 }

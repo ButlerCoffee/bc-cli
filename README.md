@@ -1,28 +1,55 @@
 Butler coffee cli tool
 ```
-                                             ╆┨┭┫┱┭┭┭┭┣┩┨╀
-                                            ┬┦┾         ╇┬┢┾
-                                           ┤┩             ┾┖┹
-                                          ┲┢╉     ╄┘┢┘┾   ╃┨┐
-                                          ┬┬      ╅├┏┖╀ ╈┐┠┥┕┤╅
-                                          ┬┢          ╃┰┓╀ ┰╄┾┤┮┰┰┱╇
-                                          ╅┕┮        ╊┕█┅├┭┶╂╄╄┼┲┨┙│┸
-                                           ╂┤┚┷ ╋╈╈┵┮┨┓███████████┑┷╊
-                                             ╉┏┼╀┠┖┏┉▀███┟┱┱┱┱┱┱┱╅╋
-                                            ╊╁╀┃┺╈   ╈╇┱▌▀┕╁
-                            ╆┱┱┱┵╉     ╅┺┩┥┪┤┖┚┱┱┰      ┿┒██┨╈
-                          ┼┨┨┚┾ ┸┨┨┬┨┨┨┭┪┭┪┬┴┴┴┴┴┞┪       ┬┇█┋
-                          ┵┗╉╀┯┣┷    ╈┬┦┷╈       ╋┴┎┼      ┬▄█┌
-                          ╉┭┛╃ ╂╉   ┹┧┽           ╆┗┴      ┫▀█┊
-                            ┕┫ ┮╃╊  ├┡╀           ┳┕╄     ╀┍██┐
-                            ╋┞┚┚┄┅┖┢┴┎┣┭┭┭┭┺   ╅┧├┠╈     ┺┄██┆╇
-                              ┶┋███▀▀▀▄┍┏┞├├├┊┍━┠┪╋  ╉╀┦┏▀██┎┼
-                                ┰┇███┊┊┇┕┗┘┚┚┬┼┿┴┴┮┥┠┈████┍┭╊
-                                  ┺┠▐▌██▄┛┞┕┝┠┌▀████████┏┮╊
-                                     ╇┱┱┭┓┒┒██┄┒┒│██└┞┤┼┼
-                                           ┯█┃┎├┝┅▌▐███▀▌┊╉
-                                           ┺┒┘┫┣┯┡┦┖┗┟┵┷
-                                             ╅╀╀╀╀╀╀╊
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWX0kkkO0XWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNKko:'......'cxXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWN0xl;..............:0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMN0xl;.........''''......;0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0o;............',;;;;,.....:0WMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMNd'...............',;;;;,.....:0MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMWx..................';;;;;,.....:0MMMMMMMWNNWWMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMWo...................';;,,'......:KMWNKko:;;:lkXMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMWx.........................':l,...;dl;'..''''..cKMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMNo...................';:dOKX0c......',;;;;;;,..dWMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMNo..............':lx0KK0xl;....',;;;,,',;;;'.'kWMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNo.........';ldkkxoc;,....',;;;,'..........;kNMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXo.....;cdxxoc;'.....',,;,,'.....;lc,..'oONMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXl....:l:,'....',,,,,''.....,:ldkO0ko;'lKWMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMXc.........'',''......';codxkkkkkkkkxc',kNMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWX0xc'.......''.......';coxkkkkkkkkkkkkkkxl''dNMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMNkc,...............,:ldxxkOOOOkkOkOOkkOOxl;,,...xWMMMMMMWNNNNWMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMKc..............';ldkOOOOOOOOOOkoc::lxOOkc.'oxl'.,kXXK0kdl::::oKWMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMk...........';codxkOOOOOOOOOOOOl.....,dOk:.:OKKko:,;;;;:coxkkc.cXMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMO,..........lxxxxkO00000000000Oc.....'d0Ol.,kKkld0OkkO0KKKKKOc.cXMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMWOc'....',..lxxxxk0000000000000kl;,,:dO0Oc.;kK0kk0KKKK0KK0Od:';OWMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMWKkxxOKKc.ckxxxk0K00000000000K00OO0000k;.lOOkkkO000Okxoc,';dXWMMMMMMMMMM
+MMMMWXNMMMMMMMMMMMMMMMMMMMMMMMMMMMMWk',xOxxxO000KKKKKKK0KK00KKKKK0o..cc,''',;;;,,,,cod0WNXNMMMMMMMMM
+MMMXo,cKMMMMMMMMMMMMMMMMMMMMMMMMMMMMK;.l0Okxxk00KKKKKKKKKK00KKKKK0kc,',;;..coodxk0XWXlcK0:oNMMMMMMMM
+MMNo...;OWMMMMMMMMMMMMMMMMMMMMMMMMMKl..;oxkOOkkO00K000KK0KKK00K0KKK0Okkd,'dNMMMMMMMMK:;Ok,lNMMMMMMMM
+MWx.....'oKWMMMMMMMMMMMMMMMMMMMMMXx,......';lxO000KK00KK0KKKKKK0KKKK0kl',kNMMMMMMMMNo,xO;:KMMMMMMMMM
+MK:.......'lOXWMMMMMMMMMMMMMMMN0o,............,;:clodxkOOdlccok00K0xc'..oNMMMMMMMMMNdc0KcoNMMMMMMMMM
+Mk...........,cxOKXNWWWWNXK0xl;.....................;;;,'.....,oOOl......dNMMMMMWXOxocllclxOKNMMMMMM
+No....,,..........,;::::;,'.......,:'...............ckKk;.......,,.......lNMMMWOc,;:cllolc:;,:kNMMMM
+Nl....,,..........................cOd'...............,xKl.......''.......xWMMMXc.'lxO0000Oko,..lkKWM
+Nl....,,...........,do'............lOx;................,'.......,,.......oNMMMX:...............:;,oX
+Wx....',..........'dx;..............;dkxl;'...................cOXKx;....,OMMMMNl..............:K0;'k
+MO,...',..........:kc.................,cdkkdl:,..........'okkKNMMMMN0ko',0MMMMMk'.........'...:xl':K
+MNl....,'.........:x:.....................;coxkxl,........cXMMMW0dxXMM0,'kMMMMNk,..............':xXW
+MMO,...',.........'oo'........................,ckkxc.......xWMMNo.,kWMO,,0MMXd;''............'..cOWM
+MMWd....''.........'lo;.........................'oOOo......:KMMMX0KWMWx.'oxd:..:xxolcc::ccloxko,.cXM
+MMMNl....''..........;d:.........................';dOc.....'OMMXdcdXMXc.........,clodxxxxxdol:;;l0WM
+MMMMXl...............,dc...........................cOo......xWMKl,lKWx'...........'clcccccllox0XWMMM
+MMMMMXl..............'dl..........................'lOl......dWMMWNWW0;............cXMWWWWMMMMMMMMMMM
+MMMMMMNd'.............ld;........................;oxd'......xWMMMMW0:..........'..xWMMMMMMMMMMMMMMMM
+MMMMMMMWO;.............cdc'.....................:xOd,......'kNNNNNO;..........'..lNMMMMMMMMMMMMMMMMM
+MMMMMMMMMXo'............'cllc::;;;'...........,oxc,........;kK00Oo'............'oXMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMW0c..............',;;;,'.........':odc'..........ckkxo;............'cOWMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMWOl'.......................,;:llc;............,ooc;'..........,cd0WMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMWKd:....................',,'...........'....;;'.;d0KOkxxxxk0XWMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMN0d:'.....................................,ckXMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMWKkl;'..............................;lkXWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMNKOdl:,'.................,;:ldkKNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNK0OkxddooooddxkO0KXNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 ```
 
 # What you are getting into
