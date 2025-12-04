@@ -50,6 +50,8 @@ func (c *Client) doRequest(method, path string, body any, requireAuth bool) (*ht
 	}
 
 	url := c.BaseURL + path
+	logRequest(method, url, body)
+
 	req, err := http.NewRequest(method, url, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -128,6 +130,8 @@ func (c *Client) handleResponse(resp *http.Response, result any) error {
 	if err != nil {
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	logResponse(resp.StatusCode, body)
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// Try to parse structured API error

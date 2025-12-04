@@ -5,8 +5,8 @@ const ActiveSubscriptionsTemplate = `=== Your Active Subscriptions ===
 {{range .Subscriptions}}{{if eq .Status "active"}}┌─ {{.Tier | upper}} ✓
 │  Status: {{.Status | upper}}
 {{if .StartedAt}}│  Started: {{.StartedAt}}
-{{end}}{{if .ExpiresAt}}│  Expires: {{.ExpiresAt}}
-{{end}}└─ ID: {{.ID}}
+{{end}}
+└─ ID: {{.ID}}
 
 {{end}}{{end}}{{if .HasActive}}✓ = Active subscription
 
@@ -24,8 +24,8 @@ Description: {{.Description}}
 {{if .ActiveSub.ID}}
 Status: {{.ActiveSub.Status | upper}}{{if eq .ActiveSub.Status "active"}} ✓{{end}}
 {{if .ActiveSub.StartedAt}}Started: {{.ActiveSub.StartedAt}}
-{{end}}{{if .ActiveSub.ExpiresAt}}Expires: {{.ActiveSub.ExpiresAt}}
-{{end}}{{end}}
+{{end}}
+{{end}}
 Features:
 {{range .Features}}  • {{.}}
 {{end}}
@@ -37,7 +37,7 @@ Let's configure your coffee order!
 {{repeat "─" 60}}
 
 How much coffee would you like per month?
-You can order anywhere from 1 kg to 50 kg.
+You can order anywhere from {{.MinQuantity}} kg to {{.MaxQuantity}} kg.
 `
 
 const OrderSplitIntroTemplate = `{{repeat "─" 60}}
@@ -76,14 +76,14 @@ const ProgressBarTemplate = `
 └──────────────────────────────────────────────────────┘`
 
 const OrderSummaryTemplate = `Your Order Summary:
-┌────────────────────────────────────────────────────────┐
-│ Tier: {{printf "%-48s" .TierName}} │
-│ Total: {{.TotalQuantity}} kg/month{{printf "%-38s" ""}} │
-│ Price: {{.Currency}} {{printf "%.2f" .TotalPrice}}/{{.BillingPeriod}}{{printf "%-36s" ""}} │
-│                                                         │
-│ How your coffee will be prepared:                     │
-{{range $i, $item := .LineItems}}│ {{printf "%-54s" (printf "   %d. %s" (add $i 1) $item)}} │
-{{end}}└────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│ {{printf "%-55s" (printf "Tier: %s" .TierName)}} │
+│ {{printf "%-55s" (printf "Total: %d kg/month" .TotalQuantity)}} │
+│ {{printf "%-55s" (printf "Price: %s %.2f/%s" .Currency .TotalPrice .BillingPeriod)}} │
+│ {{printf "%-55s" ""}} │
+│ {{printf "%-55s" "How your coffee will be prepared:"}} │
+{{range $i, $item := .LineItems}}│ {{printf "%-55s" (printf "   %d. %s" (add $i 1) $item)}} │
+{{end}}└─────────────────────────────────────────────────────────┘
 `
 
 const CheckoutHeaderTemplate = `
@@ -121,4 +121,130 @@ MMWO:....'''.....',,'...okl....,xNMMMMMM
 MMMMNkc'........''.....'cooolokXWMMMMMMM
 MMMMMMWKko:,.......,;;cx0WMMMMMMMMMMMMMM
 MMMMMMMMMMNKOxdddxk0KXWMMMMMMMMMMMMMMMMM
+`
+
+// Subscription Management Templates
+
+const ManageNotAuthenticatedTemplate = `You must be logged in to manage subscriptions.
+
+Please run: bc-cli login
+`
+
+const NoSubscriptionsTemplate = `You don't have any subscriptions yet.
+
+To subscribe, run: bc-cli subscriptions
+`
+
+const NoActionsAvailableTemplate = `No actions available for this subscription.
+`
+
+const ManageSubscriptionHeaderTemplate = `
+{{repeat "=" 60}}
+Managing Subscription: {{.Tier | upper}}
+{{repeat "=" 60}}
+
+{{.StatusIcon}} Status: {{.Status | upper}}
+{{if .StartedAt}}Started: {{.StartedAt}}
+{{end}}
+{{if .HasNextShipment}}Next Shipment: {{.NextShipment}}
+{{end}}
+{{if .HasPricing}}
+Billing: {{.Price}} {{.Currency}}/{{.BillingPeriod}}
+{{end}}
+{{if .HasOrderDetails}}
+Current Order Configuration:
+  Total: {{.TotalQuantity}} kg per month
+{{range $i, $item := .LineItems}}  {{add $i 1}}. {{$item}}
+{{end}}{{end}}
+`
+
+const PauseWarningTemplate = `
+⚠  Pausing your subscription will:
+  • Stop upcoming shipments
+  • Pause billing
+  • Keep your preferences saved
+  • You can resume anytime
+
+`
+
+const PauseConfirmWithDateTemplate = `
+✓ Your subscription will be paused for {{.Months}} month(s)
+  and automatically resume on {{.ResumeDate}}
+
+`
+
+const SubscriptionPausedTemplate = `
+✓ Subscription paused successfully!
+{{if .HasResumeDate}}
+📅 Your subscription will automatically resume on {{.ResumeDate}}
+{{else}}
+💤 Your subscription is paused indefinitely. Use 'bc-cli manage' to resume.
+{{end}}
+`
+
+const ResumeInfoTemplate = `
+✓ Resuming your subscription will:
+  • Restart shipments
+  • Resume billing
+
+`
+
+const SubscriptionResumedTemplate = `
+✓ Subscription resumed successfully!
+
+📦 Your next shipment will be scheduled soon.
+`
+
+const UpdateSubscriptionHeaderTemplate = `
+{{repeat "─" 60}}
+Update Subscription Preferences
+{{repeat "─" 60}}
+
+`
+
+const UpdatePreferencesSummaryTemplate = `
+{{repeat "─" 60}}
+New Subscription Preferences:
+{{repeat "─" 60}}
+
+Total: {{.TotalQuantity}} kg per month
+
+How your coffee will be prepared:
+{{range $i, $item := .LineItems}}  {{add $i 1}}. {{$item}}
+{{end}}
+{{repeat "─" 60}}
+
+`
+
+const SubscriptionUpdatedTemplate = `
+✓ Subscription updated successfully!
+
+📦 Your changes will take effect with your next shipment.
+`
+
+const CancelWarningTemplate = `
+⚠  Warning: Cancelling your subscription will:
+  • Stop all future shipments
+  • End your billing cycle
+  • Remove access to subscription benefits
+  • This action cannot be easily undone
+
+💡 Did you know? You can pause your subscription instead!
+   Pausing keeps your preferences and lets you resume anytime.
+
+`
+
+const CancelDoubleConfirmTemplate = `
+Please confirm once more that you want to cancel permanently.
+`
+
+const SubscriptionCancelledTemplate = `
+✓ Subscription cancelled.
+
+We're sorry to see you go! If you change your mind,
+you can always start a new subscription with: bc-cli subscriptions
+`
+
+const ActionCancelledTemplate = `
+{{.Action}} cancelled.
 `

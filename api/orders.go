@@ -132,18 +132,3 @@ func (c *Client) GetOrder(orderID string) (*Order, error) {
 
 	return &result.Data, nil
 }
-
-// ListOrders retrieves all orders for the authenticated user
-func (c *Client) ListOrders() ([]Order, error) {
-	resp, err := c.doRequest("GET", "/api/core/v1/orders", nil, true)
-	if err != nil {
-		return nil, err
-	}
-
-	var result ListOrdersResponse
-	if err := c.handleResponse(resp, &result); err != nil {
-		return nil, err
-	}
-
-	return result.Data, nil
-}

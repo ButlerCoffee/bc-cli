@@ -1,5 +1,7 @@
 package api
 
+import "fmt"
+
 type SubscriptionPaymentLinkRequest struct {
 	Tier string `json:"tier"`
 }
@@ -23,13 +25,48 @@ type SubscriptionPaymentLink struct {
 }
 
 type Subscription struct {
-	ID                string  `json:"id"`
-	Tier              string  `json:"tier"`
-	Status            string  `json:"status"`
-	StripePaymentLink string  `json:"stripe_payment_link"`
-	StartedAt         *string `json:"started_at"`
-	ExpiresAt         *string `json:"expires_at"`
-	CreatedOn         string  `json:"created_on"`
+	ID                  string                    `json:"id"`
+	Tier                string                    `json:"tier"`
+	Status              string                    `json:"status"`
+	StripePaymentLink   string                    `json:"stripe_payment_link,omitempty"`
+	StartedAt           *string                   `json:"started_at"`
+	ExpiresAt           *string                   `json:"expires_at"`
+	CreatedOn           string                    `json:"created_on"`
+	DefaultQuantityKg   string                    `json:"default_quantity_kg,omitempty"`   // Django DecimalField as string
+	DefaultPreferences  []SubscriptionPreference  `json:"default_preferences,omitempty"`   // From GetSubscription endpoint
+}
+
+// SubscriptionPreference represents a default coffee preference for a subscription
+type SubscriptionPreference struct {
+	ID            string `json:"id"`
+	QuantityKg    string `json:"quantity_kg"`    // Django DecimalField as string
+	GrindType     string `json:"grind_type"`
+	BrewingMethod string `json:"brewing_method"`
+}
+
+// GetTotalQuantity returns the total quantity as an int
+func (s *Subscription) GetTotalQuantity() int {
+	if s.DefaultQuantityKg == "" {
+		return 0
+	}
+	// Parse and round to nearest int
+	var qty float64
+	if _, err := fmt.Sscanf(s.DefaultQuantityKg, "%f", &qty); err != nil {
+		return 0
+	}
+	return int(qty + 0.5)
+}
+
+// GetQuantity returns the quantity for a preference as an int
+func (p *SubscriptionPreference) GetQuantity() int {
+	if p.QuantityKg == "" {
+		return 0
+	}
+	var qty float64
+	if _, err := fmt.Sscanf(p.QuantityKg, "%f", &qty); err != nil {
+		return 0
+	}
+	return int(qty + 0.5)
 }
 
 type AvailableSubscription struct {
@@ -40,25 +77,6 @@ type AvailableSubscription struct {
 	BillingPeriod string   `json:"billing_period"`
 	Description   string   `json:"description"`
 	Features      []string `json:"features"`
-}
-
-func (c *Client) GetSubscriptionPaymentLink(tier string) (*SubscriptionPaymentLink, error) {
-	req := SubscriptionPaymentLinkRequest{Tier: tier}
-	resp, err := c.doRequest("POST", "/api/core/v1/subscriptions/payment-link", req, true)
-	if err != nil {
-		return nil, err
-	}
-
-	var result SubscriptionPaymentLinkResponse
-	if err := c.handleResponse(resp, &result); err != nil {
-		return nil, err
-	}
-
-	return &SubscriptionPaymentLink{
-		Tier:        result.Data.Tier,
-		PaymentLink: result.Data.PaymentLink,
-		Message:     result.Data.Message,
-	}, nil
 }
 
 type ListSubscriptionsResponse struct {
@@ -103,4 +121,114 @@ func (c *Client) GetAvailableSubscriptions() ([]AvailableSubscription, error) {
 	}
 
 	return result.Data, nil
+}
+
+// GetSubscriptionPricing retrieves pricing information for a specific tier
+func (c *Client) GetSubscriptionPricing(tier string) (*AvailableSubscription, error) {
+	plans, err := c.GetAvailableSubscriptions()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, plan := range plans {
+		if plan.Tier == tier {
+			return &plan, nil
+		}
+	}
+
+	return nil, fmt.Errorf("pricing not found for tier: %s", tier)
+}
+
+// GetSubscription retrieves a specific subscription with preferences by ID
+func (c *Client) GetSubscription(subscriptionID string) (*Subscription, error) {
+	url := fmt.Sprintf("/api/core/v1/subscriptions/%s/preferences", subscriptionID)
+	resp, err := c.doRequest("GET", url, nil, true)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SubscriptionActionResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
+
+type SubscriptionActionResponse struct {
+	Meta struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"meta"`
+	Data Subscription `json:"data"`
+}
+
+// PauseSubscription pauses an active subscription
+// Note: The backend does not currently support scheduled resume dates
+func (c *Client) PauseSubscription(subscriptionID string) (*Subscription, error) {
+	url := fmt.Sprintf("/api/core/v1/subscriptions/%s/pause", subscriptionID)
+	resp, err := c.doRequest("POST", url, nil, true)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SubscriptionActionResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
+
+// ResumeSubscription resumes a paused subscription
+func (c *Client) ResumeSubscription(subscriptionID string) (*Subscription, error) {
+	url := fmt.Sprintf("/api/core/v1/subscriptions/%s/resume", subscriptionID)
+	resp, err := c.doRequest("POST", url, nil, true)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SubscriptionActionResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
+
+// CancelSubscription cancels a subscription
+func (c *Client) CancelSubscription(subscriptionID string) (*Subscription, error) {
+	url := fmt.Sprintf("/api/core/v1/subscriptions/%s/cancel", subscriptionID)
+	resp, err := c.doRequest("POST", url, nil, true)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SubscriptionActionResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
+}
+
+type UpdateSubscriptionRequest struct {
+	TotalQuantityKg int             `json:"total_quantity_kg,omitempty"`
+	Preferences     []OrderLineItem `json:"preferences,omitempty"`
+}
+
+// UpdateSubscription updates subscription preferences (quantity, line items)
+func (c *Client) UpdateSubscription(subscriptionID string, req UpdateSubscriptionRequest) (*Subscription, error) {
+	url := fmt.Sprintf("/api/core/v1/subscriptions/%s/preferences", subscriptionID)
+	resp, err := c.doRequest("PATCH", url, req, true)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SubscriptionActionResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result.Data, nil
 }

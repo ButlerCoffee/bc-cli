@@ -34,7 +34,7 @@ var funcMap = template.FuncMap{
 }
 
 // Render renders a template with the given data
-func Render(w io.Writer, tmpl string, data interface{}) error {
+func Render(w io.Writer, tmpl string, data any) error {
 	t, err := template.New("output").Funcs(funcMap).Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
@@ -43,6 +43,6 @@ func Render(w io.Writer, tmpl string, data interface{}) error {
 }
 
 // RenderToStdout renders a template to stdout
-func RenderToStdout(tmpl string, data interface{}) error {
+func RenderToStdout(tmpl string, data any) error {
 	return Render(os.Stdout, tmpl, data)
 }

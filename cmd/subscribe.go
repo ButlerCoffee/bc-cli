@@ -46,50 +46,21 @@ func runSubscriptions(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Get user's active subscriptions if authenticated
-	var activeSubscriptions []api.Subscription
-	if cfg.IsAuthenticated() {
-		activeSubscriptions, err = client.ListSubscriptions()
-		if err != nil {
-			// Don't fail if we can't get user subscriptions, just continue
-			fmt.Printf("Note: Could not fetch your active subscriptions: %v\n\n", err)
-		} else if len(activeSubscriptions) > 0 {
-			// Display user's active subscriptions first
-			displayActiveSubscriptions(activeSubscriptions)
-		}
-	}
-
-	// Create a map of active subscription tiers
-	activeTiers := make(map[string]api.Subscription)
-	for _, sub := range activeSubscriptions {
-		activeTiers[sub.Tier] = sub
-	}
-
 	// Create display items for the prompt
 	type promptItem struct {
 		Name        string
 		Description string
 		Price       string
 		Tier        string
-		IsActive    bool
-		Status      string
 	}
 
 	items := make([]promptItem, len(available)+1)
 	for i, sub := range available {
-		activeSub, isActive := activeTiers[sub.Tier]
-
 		item := promptItem{
 			Name:        sub.Name,
 			Description: sub.Description,
 			Price:       fmt.Sprintf("%s %s/%s", sub.Currency, sub.Price, sub.BillingPeriod),
 			Tier:        sub.Tier,
-			IsActive:    isActive && activeSub.Status == "active",
-			Status:      "",
-		}
-
-		if isActive {
-			item.Status = activeSub.Status
 		}
 
 		items[i] = item
@@ -104,15 +75,14 @@ func runSubscriptions(cmd *cobra.Command, args []string) error {
 
 	templates := &promptui.SelectTemplates{
 		Label:    "{{ . }}",
-		Active:   "▸ {{ .Name | cyan }}{{ if .IsActive }} ✓{{ end }}",
-		Inactive: "  {{ .Name }}{{ if .IsActive }} ✓{{ end }}",
+		Active:   "▸ {{ .Name | cyan }}",
+		Inactive: "  {{ .Name }}",
 		Selected: "{{ .Name | green }}",
 		Details: `
 --------- Subscription Details ----------
 {{ "Name:" | faint }}	{{ .Name }}
 {{ "Price:" | faint }}	{{ .Price }}
-{{ "Description:" | faint }}	{{ .Description }}{{if .IsActive}}
-{{ "Status:" | faint }}	{{ .Status | green }}{{end}}`,
+{{ "Description:" | faint }}	{{ .Description }}`,
 	}
 
 	prompt := promptui.Select{
@@ -136,12 +106,11 @@ func runSubscriptions(cmd *cobra.Command, args []string) error {
 
 	// Display detailed information about selected subscription
 	selectedSub := available[idx]
-	activeSub := activeTiers[selectedSub.Tier]
 
-	displaySubscriptionDetails(selectedSub, activeSub, cfg.IsAuthenticated())
+	displaySubscriptionDetails(selectedSub, api.Subscription{}, cfg.IsAuthenticated())
 
-	// Ask if user wants to subscribe (if not already active and authenticated)
-	if cfg.IsAuthenticated() && (activeSub.ID == "" || activeSub.Status != "active") {
+	// Ask if user wants to subscribe (if authenticated)
+	if cfg.IsAuthenticated() {
 		fmt.Println()
 		confirmed, err := promptConfirm(fmt.Sprintf("Would you like to subscribe to %s now", selectedSub.Name))
 		if err == nil && confirmed {
@@ -154,50 +123,6 @@ func runSubscriptions(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func displayActiveSubscriptions(subscriptions []api.Subscription) {
-	type subData struct {
-		Tier      string
-		Status    string
-		StartedAt string
-		ExpiresAt string
-		ID        string
-	}
-
-	hasActive := false
-	subs := make([]subData, 0, len(subscriptions))
-
-	for _, sub := range subscriptions {
-		if sub.Status == "active" {
-			hasActive = true
-		}
-
-		data := subData{
-			Tier:   sub.Tier,
-			Status: sub.Status,
-			ID:     sub.ID,
-		}
-
-		if sub.StartedAt != nil {
-			data.StartedAt = utils.FormatTimestamp(*sub.StartedAt)
-		}
-		if sub.ExpiresAt != nil {
-			data.ExpiresAt = utils.FormatTimestamp(*sub.ExpiresAt)
-		}
-
-		subs = append(subs, data)
-	}
-
-	if err := templates.RenderToStdout(templates.ActiveSubscriptionsTemplate, struct {
-		Subscriptions []subData
-		HasActive     bool
-	}{
-		Subscriptions: subs,
-		HasActive:     hasActive,
-	}); err != nil {
-		fmt.Printf("Error rendering template: %v\n", err)
-	}
 }
 
 func displaySubscriptionDetails(sub api.AvailableSubscription, activeSub api.Subscription, isAuthenticated bool) {
@@ -246,11 +171,17 @@ func createOrderAndSubscribe(cfg *config.Config, client *api.Client, tier api.Av
 		return fmt.Errorf("you must be logged in to subscribe. Please run 'bc-cli login' first")
 	}
 
-	if err := templates.RenderToStdout(templates.OrderConfigIntroTemplate, nil); err != nil {
+	if err := templates.RenderToStdout(templates.OrderConfigIntroTemplate, struct {
+		MinQuantity int
+		MaxQuantity int
+	}{
+		MinQuantity: cfg.MinQuantityKg,
+		MaxQuantity: cfg.MaxQuantityKg,
+	}); err != nil {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
-	totalQuantity, err := promptQuantityInt("Total quantity per month (kg)", 1, 50, 1)
+	totalQuantity, err := promptQuantityInt("Total quantity per month (kg)", cfg.MinQuantityKg, cfg.MaxQuantityKg, cfg.MinQuantityKg)
 	if err != nil {
 		return err
 	}
@@ -508,10 +439,7 @@ func configureLineItems(totalQuantity int) ([]api.OrderLineItem, error) {
 		maxQty := remaining
 		defaultQty := remaining
 		if remaining > 2 {
-			defaultQty = 2
-			if defaultQty > remaining {
-				defaultQty = remaining
-			}
+			defaultQty = min(2, remaining)
 		}
 
 		quantity, err := promptQuantityInt("  How much for this preference? (kg)", 1, maxQty, defaultQty)
