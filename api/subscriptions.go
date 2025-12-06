@@ -70,6 +70,7 @@ func (p *SubscriptionPreference) GetQuantity() int {
 }
 
 type AvailableSubscription struct {
+	ID            string   `json:"id"`
 	Tier          string   `json:"tier"`
 	Name          string   `json:"name"`
 	Price         string   `json:"price"`
@@ -77,6 +78,7 @@ type AvailableSubscription struct {
 	BillingPeriod string   `json:"billing_period"`
 	Description   string   `json:"description"`
 	Features      []string `json:"features"`
+	IsSubscription bool    `json:"is_subscription"`
 }
 
 type ListSubscriptionsResponse struct {
@@ -110,7 +112,22 @@ type AvailableSubscriptionsResponse struct {
 }
 
 func (c *Client) GetAvailableSubscriptions() ([]AvailableSubscription, error) {
-	resp, err := c.doRequest("GET", "/api/core/v1/subscriptions/available", nil, false)
+	resp, err := c.doRequest("GET", "/api/core/v1/subscriptions/available?is_subscription=true", nil, false)
+	if err != nil {
+		return nil, err
+	}
+
+	var result AvailableSubscriptionsResponse
+	if err := c.handleResponse(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return result.Data, nil
+}
+
+// GetAvailableProducts retrieves all available one-time purchase products
+func (c *Client) GetAvailableProducts() ([]AvailableSubscription, error) {
+	resp, err := c.doRequest("GET", "/api/core/v1/subscriptions/available?is_subscription=false", nil, false)
 	if err != nil {
 		return nil, err
 	}

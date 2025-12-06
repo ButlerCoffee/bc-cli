@@ -47,7 +47,8 @@ func (o *Order) GetTotalQuantity() float64 {
 
 // CreateOrderRequest is the request body for creating an order
 type CreateOrderRequest struct {
-	Tier            string          `json:"tier"`
+	Tier            string          `json:"tier,omitempty"`
+	ProductID       string          `json:"product_id,omitempty"`
 	TotalQuantityKg int             `json:"total_quantity_kg"`
 	LineItems       []OrderLineItem `json:"line_items"`
 }
