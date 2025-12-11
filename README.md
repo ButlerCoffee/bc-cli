@@ -99,10 +99,16 @@ We exclusively offer Jura coffee machines—the Swiss-engineered gold standard i
 
 ## Installation
 
-### Via Homebrew
+### Via Homebrew (macOS)
 ```bash
+# Add the Butler Coffee tap
 brew tap butlercoffee/tap
-brew install butler-coffee
+
+# Install bc-cli
+brew install bc-cli
+
+# Or install directly in one command
+brew install butlercoffee/tap/bc-cli
 ```
 
 ### Download Pre-compiled Binary

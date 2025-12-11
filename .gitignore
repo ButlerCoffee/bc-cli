@@ -49,3 +49,8 @@ bc-cli
 *.dll
 *.so
 *.dylib
+
+# Semantic release files
+VERSION
+CHANGELOG.md
+dist/
