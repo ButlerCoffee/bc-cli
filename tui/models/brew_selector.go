@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hassek/bc-cli/tui/components"
+	"github.com/hassek/bc-cli/tui/prompts"
 )
 
 // BrewOption represents a brewing method option
@@ -97,24 +98,46 @@ func (m BrewSelectorModel) View() string {
 	return m.duck.View() + m.selector.View()
 }
 
-// SelectBrewingMethod shows the brew selector and returns the selected brewing method
-func SelectBrewingMethod(grindType string) (string, error) {
+// BrewingMethodResult contains the selected brewing method and optional notes
+type BrewingMethodResult struct {
+	Method string
+	Notes  string
+}
+
+// SelectBrewingMethod shows the brew selector and returns the selected brewing method and notes
+func SelectBrewingMethod(grindType string) (*BrewingMethodResult, error) {
 	p := tea.NewProgram(NewBrewSelectorModel(grindType))
 	model, err := p.Run()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	m := model.(BrewSelectorModel)
 	if m.selector.Cancelled() {
-		return "", nil
+		return nil, nil
 	}
 
 	selectedItem := m.selector.SelectedItem()
 	if selectedItem == nil {
-		return "", nil
+		return nil, nil
 	}
 
 	brewOpt := selectedItem.(BrewOption)
-	return brewOpt.Value, nil
+
+	// Prompt for optional notes
+	notes, err := prompts.PromptText(
+		"Add custom notes for this preference (optional)",
+		"i.e. I like italian style espresso, I love fruity coffee, etc.",
+		"Share any preferences to help us customize your coffee experience",
+		true,
+	)
+	if err != nil && err != prompts.ErrUserCancelled {
+		return nil, err
+	}
+	// If user cancelled, notes will be empty string which is fine
+
+	return &BrewingMethodResult{
+		Method: brewOpt.Value,
+		Notes:  notes,
+	}, nil
 }

@@ -104,7 +104,6 @@ func displaySubscriptionDetails(sub api.AvailableSubscription, activeSub api.Sub
 		Price         string
 		BillingPeriod string
 		Description   string
-		Features      []string
 		ActiveSub     activeSubData
 	}{
 		Name:          sub.Name,
@@ -112,7 +111,6 @@ func displaySubscriptionDetails(sub api.AvailableSubscription, activeSub api.Sub
 		Price:         sub.Price,
 		BillingPeriod: sub.BillingPeriod,
 		Description:   sub.Description,
-		Features:      sub.Features,
 		ActiveSub:     activeData,
 	}); err != nil {
 		fmt.Printf("Error rendering template: %v\n", err)
@@ -141,29 +139,38 @@ func createOrderAndSubscribe(cfg *config.Config, client *api.Client, tier api.Av
 
 	fmt.Printf("\n✓ Total: %d per month\n", totalQuantity)
 
-	// Step 2: Ask if they want to split or keep uniform
-	if err := templates.RenderToStdout(templates.OrderSplitIntroTemplate, nil); err != nil {
-		return fmt.Errorf("failed to render template: %w", err)
-	}
-
-	wantsSplit, err := prompts.PromptConfirm("Would you like different grind methods?")
-	if err != nil {
-		return err
-	}
-
 	var lineItems []api.OrderLineItem
 
-	if !wantsSplit {
-		// Simple flow - all coffee the same way
+	// Step 2: Ask if they want to split or keep uniform (skip if quantity is 1)
+	if totalQuantity == 1 {
+		// Only 1 unit - cannot split, go straight to uniform order
 		lineItems, err = order.ConfigureUniformOrder(totalQuantity)
 		if err != nil {
 			return err
 		}
 	} else {
-		// Complex flow - split into multiple preferences
-		lineItems, err = order.ConfigureLineItems(totalQuantity)
+		// Multiple units - ask if they want to split
+		if err := templates.RenderToStdout(templates.OrderSplitIntroTemplate, nil); err != nil {
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+
+		wantsSplit, err := prompts.PromptConfirm("Would you like different grind methods?")
 		if err != nil {
 			return err
+		}
+
+		if !wantsSplit {
+			// Simple flow - all coffee the same way
+			lineItems, err = order.ConfigureUniformOrder(totalQuantity)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Complex flow - split into multiple preferences
+			lineItems, err = order.ConfigureLineItems(totalQuantity)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

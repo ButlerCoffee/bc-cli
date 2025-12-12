@@ -7,10 +7,13 @@ import (
 
 // Model that composes duck with input/confirm components
 type promptModel struct {
-	duck      *components.DuckComponent
-	input     *components.InputComponent
-	confirm   *components.ConfirmComponent
-	inputMode bool
+	duck        *components.DuckComponent
+	input       *components.InputComponent
+	textInput   *components.TextInputComponent
+	confirm     *components.ConfirmComponent
+	inputMode   bool
+	textMode    bool
+	confirmMode bool
 }
 
 func (m promptModel) Init() tea.Cmd {
@@ -18,6 +21,8 @@ func (m promptModel) Init() tea.Cmd {
 	cmds = append(cmds, m.duck.Init())
 	if m.inputMode {
 		cmds = append(cmds, m.input.Init())
+	} else if m.textMode {
+		cmds = append(cmds, m.textInput.Init())
 	} else {
 		cmds = append(cmds, m.confirm.Init())
 	}
@@ -34,7 +39,7 @@ func (m promptModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, duckCmd)
 	}
 
-	// Update input or confirm component
+	// Update input, text input, or confirm component
 	if m.inputMode {
 		var inputCmd tea.Cmd
 		m.input, inputCmd = m.input.Update(msg)
@@ -44,6 +49,17 @@ func (m promptModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Trigger duck action on submit
 		if m.input.Submitted() {
+			m.duck.TriggerAction()
+		}
+	} else if m.textMode {
+		var textInputCmd tea.Cmd
+		m.textInput, textInputCmd = m.textInput.Update(msg)
+		if textInputCmd != nil {
+			cmds = append(cmds, textInputCmd)
+		}
+
+		// Trigger duck action on submit
+		if m.textInput.Submitted() {
 			m.duck.TriggerAction()
 		}
 	} else {
@@ -67,6 +83,8 @@ func (m promptModel) View() string {
 	view += m.duck.View()
 	if m.inputMode {
 		view += m.input.View()
+	} else if m.textMode {
+		view += m.textInput.View()
 	} else {
 		view += m.confirm.View()
 	}
@@ -106,9 +124,9 @@ func PromptConfirm(label string) (bool, error) {
 	confirm := components.NewConfirmComponent(label)
 
 	m := promptModel{
-		duck:      duck,
-		confirm:   confirm,
-		inputMode: false,
+		duck:        duck,
+		confirm:     confirm,
+		confirmMode: true,
 	}
 
 	p := tea.NewProgram(m)
@@ -123,6 +141,31 @@ func PromptConfirm(label string) (bool, error) {
 	}
 
 	return result.confirm.Result(), nil
+}
+
+// PromptText prompts the user to enter text with an optional placeholder
+func PromptText(label, placeholder, helpText string, optional bool) (string, error) {
+	duck := components.NewDuckComponent()
+	textInput := components.NewTextInputComponent(label, placeholder, helpText, optional)
+
+	m := promptModel{
+		duck:      duck,
+		textInput: textInput,
+		textMode:  true,
+	}
+
+	p := tea.NewProgram(m)
+	finalModel, err := p.Run()
+	if err != nil {
+		return "", err
+	}
+
+	result := finalModel.(promptModel)
+	if result.textInput.Cancelled() {
+		return "", ErrUserCancelled
+	}
+
+	return result.textInput.Value(), nil
 }
 
 // ErrUserCancelled is returned when the user cancels the prompt

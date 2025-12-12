@@ -84,13 +84,13 @@ func displayProductDetails(product api.AvailableSubscription) {
 	fmt.Printf("\n  Price: %s %s\n", product.Currency, product.Price)
 	fmt.Printf("  %s\n\n", product.Description)
 
-	if len(product.Features) > 0 {
-		fmt.Println("  Features:")
-		for _, feature := range product.Features {
-			fmt.Printf("    • %s\n", feature)
-		}
-		fmt.Println()
-	}
+	// if len(product.Features) > 0 {
+	// 	fmt.Println("  Features:")
+	// 	for _, feature := range product.Features {
+	// 		fmt.Printf("    • %s\n", feature)
+	// 	}
+	// 	fmt.Println()
+	// }
 
 	fmt.Println(strings.Repeat("═", 60) + "\n")
 }
@@ -129,7 +129,7 @@ func createProductOrder(cfg *config.Config, client *api.Client, product api.Avai
 	}
 
 	// Step 3: Ask for brewing method (ALWAYS)
-	brewingMethod, err := order.SelectBrewingMethod(grindType)
+	brewResult, err := order.SelectBrewingMethod(grindType)
 	if err != nil {
 		return err
 	}
@@ -137,15 +137,18 @@ func createProductOrder(cfg *config.Config, client *api.Client, product api.Avai
 	// Confirmation message
 	fmt.Printf("\n✓ Perfect! Your order: %d x %s - ", quantity, product.Name)
 	if grindType == "whole_bean" {
-		fmt.Printf("whole beans for %s.\n", order.BrewingMethodDisplay(brewingMethod))
+		fmt.Printf("whole beans for %s.\n", order.BrewingMethodDisplay(brewResult.Method))
 	} else {
-		grindDesc := order.GetGrindDescription(brewingMethod)
-		fmt.Printf("ground for %s (%s).\n", order.BrewingMethodDisplay(brewingMethod), grindDesc)
+		grindDesc := order.GetGrindDescription(brewResult.Method)
+		fmt.Printf("ground for %s (%s).\n", order.BrewingMethodDisplay(brewResult.Method), grindDesc)
+	}
+	if brewResult.Notes != "" {
+		fmt.Printf("  Notes: %s\n", brewResult.Notes)
 	}
 	fmt.Println()
 
 	// Step 4: Show order summary
-	if err := showProductOrderSummary(product, quantity, grindType, brewingMethod); err != nil {
+	if err := showProductOrderSummary(product, quantity, grindType, brewResult.Method, brewResult.Notes); err != nil {
 		return err
 	}
 
@@ -168,7 +171,8 @@ func createProductOrder(cfg *config.Config, client *api.Client, product api.Avai
 			{
 				Quantity:      quantity,
 				GrindType:     grindType,
-				BrewingMethod: brewingMethod,
+				BrewingMethod: brewResult.Method,
+				Notes:         brewResult.Notes,
 			},
 		},
 	})
@@ -218,7 +222,7 @@ func createProductOrder(cfg *config.Config, client *api.Client, product api.Avai
 	return nil
 }
 
-func showProductOrderSummary(product api.AvailableSubscription, quantity int, grindType, brewingMethod string) error {
+func showProductOrderSummary(product api.AvailableSubscription, quantity int, grindType, brewingMethod, notes string) error {
 	// Calculate total price
 	pricePerUnit, _ := strconv.ParseFloat(product.Price, 64)
 	totalPrice := pricePerUnit * float64(quantity)
@@ -237,6 +241,9 @@ func showProductOrderSummary(product api.AvailableSubscription, quantity int, gr
 	} else {
 		grindDesc := order.GetGrindDescription(brewingMethod)
 		fmt.Printf("    • Ground for %s (%s)\n", order.BrewingMethodDisplay(brewingMethod), grindDesc)
+	}
+	if notes != "" {
+		fmt.Printf("    • Notes: %s\n", notes)
 	}
 
 	fmt.Println("\n" + strings.Repeat("═", 60) + "\n")

@@ -382,23 +382,33 @@ func handleUpdate(cfg *config.Config, client *api.Client, subscription *api.Subs
 	} else {
 		// Full preference update
 		fmt.Println()
-		wantsSplit, err := prompts.PromptConfirm("Would you like different grind methods?")
-		if err != nil {
-			if err := templates.RenderToStdout(templates.ActionCancelledTemplate, struct{ Action string }{Action: "Update"}); err != nil {
-				fmt.Println("Update cancelled.")
-			}
-			return nil, nil
-		}
 
-		if !wantsSplit {
+		if totalQuantity == 1 {
+			// Only 1 unit - cannot split, go straight to uniform order
 			lineItems, err = order.ConfigureUniformOrder(totalQuantity)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			lineItems, err = order.ConfigureLineItems(totalQuantity)
+			// Multiple units - ask if they want to split
+			wantsSplit, err := prompts.PromptConfirm("Would you like different grind methods?")
 			if err != nil {
-				return nil, err
+				if err := templates.RenderToStdout(templates.ActionCancelledTemplate, struct{ Action string }{Action: "Update"}); err != nil {
+					fmt.Println("Update cancelled.")
+				}
+				return nil, nil
+			}
+
+			if !wantsSplit {
+				lineItems, err = order.ConfigureUniformOrder(totalQuantity)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				lineItems, err = order.ConfigureLineItems(totalQuantity)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

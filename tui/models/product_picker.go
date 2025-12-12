@@ -25,9 +25,9 @@ func (p ProductItem) Details() string {
 	if p.IsExit {
 		return "Return to main menu"
 	}
-	details := fmt.Sprintf("Name:        %s\n", p.Product.Name)
-	details += fmt.Sprintf("Price:       %s %s\n", p.Product.Currency, p.Product.Price)
-	details += fmt.Sprintf("Description: %s", p.Product.Description)
+	details := fmt.Sprintf("Name:    %s\n", p.Product.Name)
+	details += fmt.Sprintf("Price:   %s %s\n", p.Product.Currency, p.Product.Price)
+	details += fmt.Sprintf("Summary: %s", p.Product.Summary)
 	return details
 }
 

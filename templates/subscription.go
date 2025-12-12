@@ -26,9 +26,6 @@ Status: {{.ActiveSub.Status | upper}}{{if eq .ActiveSub.Status "active"}} ✓{{e
 {{if .ActiveSub.StartedAt}}Started: {{.ActiveSub.StartedAt}}
 {{end}}
 {{end}}
-Features:
-{{range .Features}}  • {{.}}
-{{end}}
 `
 
 const OrderConfigIntroTemplate = `

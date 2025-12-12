@@ -42,6 +42,7 @@ type SubscriptionPreference struct {
 	Quantity      string `json:"quantity"`    // Django DecimalField as string
 	GrindType     string `json:"grind_type"`
 	BrewingMethod string `json:"brewing_method"`
+	Notes         string `json:"notes,omitempty"`
 }
 
 // GetTotalQuantity returns the total quantity as an int
@@ -77,6 +78,7 @@ type AvailablePlan struct {
 	Price         string   `json:"price"`
 	Currency      string   `json:"currency"`
 	BillingPeriod string   `json:"billing_period"`
+	Summary       string   `json:"summary"`
 	Description   string   `json:"description"`
 	Features      []string `json:"features"`
 	IsSubscription bool    `json:"is_subscription"`

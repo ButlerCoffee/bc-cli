@@ -35,7 +35,7 @@ func ConfigureUniformOrder(totalQuantity int) ([]api.OrderLineItem, error) {
 	}
 
 	// ALWAYS prompt for brewing method
-	brewingMethod, err := SelectBrewingMethod(grindType)
+	brewResult, err := SelectBrewingMethod(grindType)
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +43,12 @@ func ConfigureUniformOrder(totalQuantity int) ([]api.OrderLineItem, error) {
 	// Confirmation message
 	fmt.Printf("\n✓ Perfect! All %d will be ", totalQuantity)
 	if grindType == "whole_bean" {
-		fmt.Printf("whole beans, roasted for %s.\n", BrewingMethodDisplay(brewingMethod))
+		fmt.Printf("whole beans, roasted for %s.\n", BrewingMethodDisplay(brewResult.Method))
 	} else {
-		fmt.Printf("ground for %s.\n", BrewingMethodDisplay(brewingMethod))
+		fmt.Printf("ground for %s.\n", BrewingMethodDisplay(brewResult.Method))
+	}
+	if brewResult.Notes != "" {
+		fmt.Printf("  Notes: %s\n", brewResult.Notes)
 	}
 	fmt.Println()
 
@@ -54,7 +57,8 @@ func ConfigureUniformOrder(totalQuantity int) ([]api.OrderLineItem, error) {
 		{
 			Quantity:      totalQuantity,
 			GrindType:     grindType,
-			BrewingMethod: brewingMethod,
+			BrewingMethod: brewResult.Method,
+			Notes:         brewResult.Notes,
 		},
 	}
 
@@ -113,7 +117,7 @@ func ConfigureLineItems(totalQuantity int) ([]api.OrderLineItem, error) {
 		}
 
 		// Prompt for brewing method (ALWAYS, regardless of grind type)
-		brewingMethod, err := SelectBrewingMethod(grindType)
+		brewResult, err := SelectBrewingMethod(grindType)
 		if err != nil {
 			return nil, err
 		}
@@ -121,15 +125,19 @@ func ConfigureLineItems(totalQuantity int) ([]api.OrderLineItem, error) {
 		lineItems = append(lineItems, api.OrderLineItem{
 			Quantity:      quantity,
 			GrindType:     grindType,
-			BrewingMethod: brewingMethod,
+			BrewingMethod: brewResult.Method,
+			Notes:         brewResult.Notes,
 		})
 
 		// Updated confirmation message
 		fmt.Printf("\n✓ Added: %d ", quantity)
 		if grindType == "whole_bean" {
-			fmt.Printf("whole beans for %s", BrewingMethodDisplay(brewingMethod))
+			fmt.Printf("whole beans for %s", BrewingMethodDisplay(brewResult.Method))
 		} else {
-			fmt.Printf("ground for %s", BrewingMethodDisplay(brewingMethod))
+			fmt.Printf("ground for %s", BrewingMethodDisplay(brewResult.Method))
+		}
+		if brewResult.Notes != "" {
+			fmt.Printf("\n  Notes: %s", brewResult.Notes)
 		}
 		fmt.Println()
 
@@ -158,8 +166,8 @@ func SelectGrindType() (string, error) {
 	return models.SelectGrindType()
 }
 
-// SelectBrewingMethod prompts the user to select a brewing method
-func SelectBrewingMethod(grindType string) (string, error) {
+// SelectBrewingMethod prompts the user to select a brewing method and add notes
+func SelectBrewingMethod(grindType string) (*models.BrewingMethodResult, error) {
 	// Show helpful message first
 	fmt.Println("  What is your preferred brewing method?")
 	fmt.Println("  This helps us understand the best profiles to ensure the best tasting experience!")

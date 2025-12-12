@@ -25,9 +25,17 @@ func (s SubscriptionItem) Details() string {
 	if s.IsExit {
 		return "Return to main menu"
 	}
-	details := fmt.Sprintf("Name:        %s\n", s.Subscription.Name)
-	details += fmt.Sprintf("Price:       %s %s/%s\n", s.Subscription.Currency, s.Subscription.Price, s.Subscription.BillingPeriod)
-	details += fmt.Sprintf("Description: %s", s.Subscription.Description)
+	details := fmt.Sprintf("Name:    %s\n", s.Subscription.Name)
+	details += fmt.Sprintf("Price:   %s %s/%s\n", s.Subscription.Currency, s.Subscription.Price, s.Subscription.BillingPeriod)
+	details += fmt.Sprintf("Summary: %s\n", s.Subscription.Summary)
+
+	if len(s.Subscription.Features) > 0 {
+		details += "\nFeatures:\n"
+		for _, feature := range s.Subscription.Features {
+			details += fmt.Sprintf("  • %s\n", feature)
+		}
+	}
+
 	return details
 }
 
