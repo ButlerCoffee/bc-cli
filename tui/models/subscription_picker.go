@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hassek/bc-cli/api"
@@ -26,23 +27,24 @@ func (s SubscriptionItem) Details() string {
 	if s.IsExit {
 		return "Return to main menu"
 	}
-	details := fmt.Sprintf("Name:    %s\n", s.Subscription.Name)
-	details += fmt.Sprintf("Price:   %s %s/%s\n", s.Subscription.Currency, s.Subscription.Price, s.Subscription.BillingPeriod)
+	var details strings.Builder
+	details.WriteString(fmt.Sprintf("Name:    %s\n", s.Subscription.Name))
+	details.WriteString(fmt.Sprintf("Price:   %s %s/%s\n", s.Subscription.Currency, s.Subscription.Price, s.Subscription.BillingPeriod))
 
 	// Wrap summary to fit in details panel (60 chars wide, minus label)
 	wrappedSummary := utils.WrapTextWithIndent(s.Subscription.Summary, 55, "         ")
-	details += fmt.Sprintf("Summary: %s\n", wrappedSummary)
+	details.WriteString(fmt.Sprintf("Summary: %s\n", wrappedSummary))
 
 	if len(s.Subscription.Features) > 0 {
-		details += "\nFeatures:\n"
+		details.WriteString("\nFeatures:\n")
 		for _, feature := range s.Subscription.Features {
 			// Wrap each feature to fit (60 chars wide, minus bullet indent)
 			wrappedFeature := utils.WrapTextWithIndent(feature, 56, "    ")
-			details += fmt.Sprintf("  • %s\n", wrappedFeature)
+			details.WriteString(fmt.Sprintf("  • %s\n", wrappedFeature))
 		}
 	}
 
-	return details
+	return details.String()
 }
 
 // SubscriptionPickerModel composes duck + select for subscription browsing

@@ -214,10 +214,3 @@ func GetGrindDescription(method string) string {
 func ShowProgressBar(current, total int) {
 	fmt.Println(templates.RenderProgressBar(current, total))
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

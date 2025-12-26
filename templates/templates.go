@@ -44,13 +44,13 @@ var funcMap = template.FuncMap{
 		// Auto-detect terminal width and use most of it with margins
 		termWidth := utils.GetTerminalWidth()
 		// Use 90% of terminal width with reasonable min/max bounds
-		maxWidth := int(float64(termWidth) * 0.9)
-		if maxWidth < 60 {
-			maxWidth = 60 // Minimum width for readability
-		}
-		if maxWidth > 120 {
-			maxWidth = 120 // Maximum width for readability
-		}
+		maxWidth := min(
+			// Minimum width for readability
+			max(int(float64(termWidth)*0.9),
+
+				60),
+			// Maximum width for readability
+			120)
 		return utils.WrapText(text, maxWidth)
 	},
 	// Style functions for inline text formatting
@@ -105,13 +105,13 @@ var funcMap = template.FuncMap{
 		// Auto-detect terminal width and use most of it with margins
 		termWidth := utils.GetTerminalWidth()
 		// Use 90% of terminal width with reasonable min/max bounds
-		maxWidth := int(float64(termWidth) * 0.9)
-		if maxWidth < 60 {
-			maxWidth = 60 // Minimum width for readability
-		}
-		if maxWidth > 120 {
-			maxWidth = 120 // Maximum width for readability
-		}
+		maxWidth := min(
+			// Minimum width for readability
+			max(int(float64(termWidth)*0.9),
+
+				60),
+			// Maximum width for readability
+			120)
 		style := lipgloss.NewStyle().
 			Width(maxWidth).
 			MarginBottom(1)

@@ -22,8 +22,16 @@ var learnCmd = &cobra.Command{
 	RunE:  runLearn,
 }
 
+var learnBookmarksCmd = &cobra.Command{
+	Use:   "bookmarks",
+	Short: "View your bookmarked articles",
+	Long:  `Display all articles you've saved to your bookmarks. Requires authentication.`,
+	RunE:  runLearnBookmarks,
+}
+
 func init() {
 	rootCmd.AddCommand(learnCmd)
+	learnCmd.AddCommand(learnBookmarksCmd)
 }
 
 func runLearn(cmd *cobra.Command, args []string) error {
@@ -47,26 +55,15 @@ func runLearn(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		// Show category picker (with bookmarks option if authenticated)
-		category, showBookmarks, err := models.PickCategory(categories, cfg.IsAuthenticated())
+		// Show category picker
+		category, err := models.PickCategory(categories)
 		if err != nil {
 			return err
 		}
 
 		// User cancelled or selected exit
-		if category == nil && !showBookmarks {
+		if category == nil {
 			return nil
-		}
-
-		// Handle bookmarks view
-		if showBookmarks {
-			if err := showBookmarksView(cfg, client); err != nil {
-				fmt.Printf("\nError showing bookmarks: %v\n", err)
-				fmt.Print("Press Enter to continue...")
-				_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
-				continue
-			}
-			continue
 		}
 
 		// Navigate into category
@@ -80,6 +77,17 @@ func runLearn(cmd *cobra.Command, args []string) error {
 			continue
 		}
 	}
+}
+
+func runLearnBookmarks(cmd *cobra.Command, args []string) error {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	client := api.NewClient(cfg)
+
+	return showBookmarksView(cfg, client)
 }
 
 func navigateCategory(cfg *config.Config, client *api.Client, category *api.Category) error {
@@ -237,14 +245,16 @@ func toggleBookmark(client *api.Client, article *api.Article) error {
 		// Need to find bookmark ID to delete
 		bookmarks, err := client.ListBookmarks()
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to fetch bookmarks: %w", err)
 		}
+
 		for _, bm := range bookmarks {
-			if bm.ArticleID == article.ID {
+			// Use the nested Article.ID since article_id might not be populated at top level
+			if bm.Article.ID == article.ID {
 				return client.DeleteBookmark(bm.ID)
 			}
 		}
-		return fmt.Errorf("bookmark not found")
+		return fmt.Errorf("bookmark not found for article %s (searched %d bookmarks)", article.ID, len(bookmarks))
 	}
 	_, err := client.CreateBookmark(article.ID)
 	return err

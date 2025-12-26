@@ -8,17 +8,13 @@ import (
 
 // CategoryItem wraps an api.Category for use with SelectComponent
 type CategoryItem struct {
-	Category          api.Category
-	IsBookmarksOption bool // Special option to view bookmarks
-	IsExit            bool
+	Category api.Category
+	IsExit   bool
 }
 
 func (c CategoryItem) Label() string {
 	if c.IsExit {
 		return "← Exit"
-	}
-	if c.IsBookmarksOption {
-		return "★ My Bookmarks"
 	}
 	return c.Category.Name
 }
@@ -26,9 +22,6 @@ func (c CategoryItem) Label() string {
 func (c CategoryItem) Details() string {
 	if c.IsExit {
 		return "Return to main menu"
-	}
-	if c.IsBookmarksOption {
-		return "View your saved articles"
 	}
 	return c.Category.Description
 }
@@ -39,19 +32,8 @@ type CategoryPickerModel struct {
 	selector *components.SelectComponent
 }
 
-func NewCategoryPickerModel(categories []api.Category, showBookmarks bool) CategoryPickerModel {
-	itemsCount := len(categories)
-	if showBookmarks {
-		itemsCount++ // Add bookmarks option
-	}
-	itemsCount++ // Add exit option
-
-	items := make([]components.SelectItem, 0, itemsCount)
-
-	// Add bookmarks option first if authenticated
-	if showBookmarks {
-		items = append(items, CategoryItem{IsBookmarksOption: true})
-	}
+func NewCategoryPickerModel(categories []api.Category) CategoryPickerModel {
+	items := make([]components.SelectItem, 0, len(categories)+1)
 
 	// Add categories
 	for _, cat := range categories {
@@ -100,32 +82,28 @@ func (m CategoryPickerModel) View() string {
 	return m.duck.View() + m.selector.View()
 }
 
-// PickCategory returns selected category, special flag for bookmarks, or error
-// Second return value is true if user selected bookmarks option
-func PickCategory(categories []api.Category, showBookmarks bool) (*api.Category, bool, error) {
-	p := tea.NewProgram(NewCategoryPickerModel(categories, showBookmarks))
+// PickCategory returns selected category or error
+func PickCategory(categories []api.Category) (*api.Category, error) {
+	p := tea.NewProgram(NewCategoryPickerModel(categories))
 	model, err := p.Run()
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	m := model.(CategoryPickerModel)
 	if m.selector.Cancelled() {
-		return nil, false, nil
+		return nil, nil
 	}
 
 	selectedItem := m.selector.SelectedItem()
 	if selectedItem == nil {
-		return nil, false, nil
+		return nil, nil
 	}
 
 	catItem := selectedItem.(CategoryItem)
 	if catItem.IsExit {
-		return nil, false, nil
-	}
-	if catItem.IsBookmarksOption {
-		return nil, true, nil // Signal to show bookmarks
+		return nil, nil
 	}
 
-	return &catItem.Category, false, nil
+	return &catItem.Category, nil
 }

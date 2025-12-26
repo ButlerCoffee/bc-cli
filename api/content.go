@@ -98,7 +98,10 @@ type bookmarksResponse struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
 	} `json:"meta"`
-	Data []Bookmark `json:"data"`
+	Data struct {
+		Count   int        `json:"count"`
+		Results []Bookmark `json:"results"`
+	} `json:"data"`
 }
 
 type bookmarkResponse struct {
@@ -159,7 +162,7 @@ func (c *Client) ListCategorySections(categorySlug string) ([]Section, error) {
 // ListCategoryArticles retrieves articles in category's default section
 func (c *Client) ListCategoryArticles(categorySlug string) ([]Article, error) {
 	url := fmt.Sprintf("/api/core/v1/content/categories/%s/articles/", categorySlug)
-	resp, err := c.doRequest("GET", url, nil, false)
+	resp, err := c.doRequest("GET", url, nil, c.Config.IsAuthenticated())
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +178,7 @@ func (c *Client) ListCategoryArticles(categorySlug string) ([]Article, error) {
 // ListSectionArticles retrieves articles in a specific section
 func (c *Client) ListSectionArticles(sectionID string) ([]Article, error) {
 	url := fmt.Sprintf("/api/core/v1/content/sections/%s/articles/", sectionID)
-	resp, err := c.doRequest("GET", url, nil, false)
+	resp, err := c.doRequest("GET", url, nil, c.Config.IsAuthenticated())
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +194,7 @@ func (c *Client) ListSectionArticles(sectionID string) ([]Article, error) {
 // GetArticle retrieves full article with content
 func (c *Client) GetArticle(articleID string) (*Article, error) {
 	url := fmt.Sprintf("/api/core/v1/content/articles/%s/", articleID)
-	resp, err := c.doRequest("GET", url, nil, false)
+	resp, err := c.doRequest("GET", url, nil, c.Config.IsAuthenticated())
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +219,7 @@ func (c *Client) ListBookmarks() ([]Bookmark, error) {
 		return nil, err
 	}
 
-	return result.Data, nil
+	return result.Data.Results, nil
 }
 
 // CreateBookmark bookmarks an article (requires auth)

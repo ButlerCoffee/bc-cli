@@ -29,18 +29,18 @@ func (s SimpleItem) Details() string { return s.DetailsText }
 
 // SelectComponent handles list selection with cursor navigation
 type SelectComponent struct {
-	items       []SelectItem
-	cursor      int
-	selected    bool
-	cancelled   bool
-	title       string
+	items        []SelectItem
+	cursor       int
+	selected     bool
+	cancelled    bool
+	title        string
 	scrollOffset int
 }
 
 func NewSelectComponent(title string, items []SelectItem) *SelectComponent {
 	return &SelectComponent{
-		title: title,
-		items: items,
+		title:  title,
+		items:  items,
 		cursor: 0,
 	}
 }
@@ -104,10 +104,7 @@ func (s *SelectComponent) View() string {
 
 	// Calculate visible range
 	start := s.scrollOffset
-	end := s.scrollOffset + maxVisibleItems
-	if end > len(s.items) {
-		end = len(s.items)
-	}
+	end := min(s.scrollOffset+maxVisibleItems, len(s.items))
 
 	// Show scroll indicator at top if needed
 	if s.scrollOffset > 0 {

@@ -73,6 +73,12 @@ func (c *Client) doRequest(method, path string, body any, requireAuth bool) (*ht
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Config.AccessToken))
 	}
 
+	// For DELETE requests, disable connection reuse to prevent "Unsolicited response"
+	// warnings when backend incorrectly sends body with 204 No Content
+	if method == "DELETE" {
+		req.Close = true
+	}
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)

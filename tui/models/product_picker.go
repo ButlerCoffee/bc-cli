@@ -29,20 +29,20 @@ func (p ProductItem) Details() string {
 
 	// Get terminal width and calculate available space for details
 	termWidth := utils.GetTerminalWidth()
-	detailsWidth := termWidth - 10 // Account for margins and duck
-	if detailsWidth > 100 {
-		detailsWidth = 100 // Cap at 100 for readability
-	}
+	detailsWidth := min(
+		// Account for margins and duck
+		termWidth-10,
+		// Cap at 100 for readability
+		100)
 
 	details := fmt.Sprintf("Name:    %s\n", p.Product.Name)
 	details += fmt.Sprintf("Price:   %s %s\n", p.Product.Currency, p.Product.Price)
 
 	// Wrap summary to fit available space
 	indentWidth := 9 // "Summary: " is 9 chars
-	wrapWidth := detailsWidth - indentWidth
-	if wrapWidth < 20 {
-		wrapWidth = 20 // Minimum width
-	}
+	wrapWidth := max(detailsWidth-indentWidth,
+		// Minimum width
+		20)
 	wrappedSummary := utils.WrapTextWithIndent(p.Product.Summary, wrapWidth, "         ")
 	details += fmt.Sprintf("Summary: %s", wrappedSummary)
 	return details

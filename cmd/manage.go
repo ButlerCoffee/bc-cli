@@ -360,10 +360,11 @@ func handleUpdate(cfg *config.Config, client *api.Client, subscription *api.Subs
 				currentQty := pref.GetQuantity()
 				// Calculate proportional quantity
 				proportion := float64(currentQty) / totalCurrentQty
-				newQty := int(proportion*float64(totalQuantity) + 0.5) // Round to nearest
-				if newQty < 1 {
-					newQty = 1 // Ensure at least 1
-				}
+				newQty := max(
+					// Round to nearest
+					int(proportion*float64(totalQuantity)+0.5),
+					// Ensure at least 1
+					1)
 				lineItems = append(lineItems, api.OrderLineItem{
 					Quantity:      newQty,
 					GrindType:     pref.GrindType,

@@ -34,20 +34,20 @@ func (a ArticleItem) Details() string {
 
 	// Get terminal width and calculate available space for details
 	termWidth := utils.GetTerminalWidth()
-	detailsWidth := termWidth - 10 // Account for margins and duck
-	if detailsWidth > 100 {
-		detailsWidth = 100 // Cap at 100 for readability
-	}
+	detailsWidth := min(
+		// Account for margins and duck
+		termWidth-10,
+		// Cap at 100 for readability
+		100)
 
 	var details strings.Builder
 
 	// Wrap summary to fit available space
 	if a.Article.Summary != "" {
 		indentWidth := 9 // "Summary: " is 9 chars
-		wrapWidth := detailsWidth - indentWidth
-		if wrapWidth < 20 {
-			wrapWidth = 20 // Minimum width
-		}
+		wrapWidth := max(detailsWidth-indentWidth,
+			// Minimum width
+			20)
 		wrappedSummary := utils.WrapTextWithIndent(a.Article.Summary, wrapWidth, "         ")
 		details.WriteString(fmt.Sprintf("Summary: %s\n", wrappedSummary))
 	}
