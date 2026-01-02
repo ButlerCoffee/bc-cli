@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ButlerCoffee/bc-cli/compare/v1.0.1...v1.1.0) (2026-01-02)
+
+
+### Features
+
+* migrate to GoReleaser for release automation ([1ef8f0e](https://github.com/ButlerCoffee/bc-cli/commit/1ef8f0ed42c74c3640606bca8dc2eae2df1f5eb1))
+
 ## [1.0.1](https://github.com/ButlerCoffee/bc-cli/compare/v1.0.0...v1.0.1) (2026-01-02)
 
 
