@@ -52,34 +52,30 @@ release:
   # Use the tag name as release name
   name_template: "{{.Tag}}"
 
-brews:
-  - # Repository to push the formula to
+homebrew_casks:
+  - # Repository to push the cask to
     repository:
       owner: ButlerCoffee
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
 
-    # Formula name
+    # Cask name
     name: bc-cli
 
-    # Path to formula in the tap repository
-    directory: Formula
+    # Path to cask in the tap repository
+    directory: Casks
 
-    # Git config for committing the formula
+    # Git config for committing the cask
     commit_author:
       name: github-actions[bot]
       email: github-actions[bot]@users.noreply.github.com
 
-    commit_msg_template: "chore: update {{ .ProjectName }} formula to {{ .Tag }}"
+    commit_msg_template: "chore: update {{ .ProjectName }} cask to {{ .Tag }}"
 
-    # Homebrew formula metadata
+    # Homebrew cask metadata
     description: "Butler Coffee CLI - Discover coffee knowledge and manage subscriptions from your terminal"
     homepage: "https://github.com/ButlerCoffee/bc-cli"
     license: "MIT"
 
-    # Skip uploading to homebrew/core (we're using our own tap)
+    # Skip uploading to homebrew/cask (we're using our own tap)
     skip_upload: false
-
-    # Test command
-    test: |
-      assert_match "bc-cli version", shell_output("#{bin}/bc-cli --version")
