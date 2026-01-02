@@ -15,7 +15,11 @@ class BcCli < Formula
   end
 
   def install
-    bin.install "bc-cli-darwin-#{Hardware::CPU.arch}" => "bc-cli"
+    if Hardware::CPU.arm?
+      bin.install "bc-cli-darwin-arm64" => "bc-cli"
+    else
+      bin.install "bc-cli-darwin-amd64" => "bc-cli"
+    end
   end
 
   test do
