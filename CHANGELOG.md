@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/ButlerCoffee/bc-cli/compare/v1.0.0...v1.0.1) (2026-01-02)
+
+
+### Bug Fixes
+
+* correct homebrew formula ([59ec93e](https://github.com/ButlerCoffee/bc-cli/commit/59ec93e634d37dfb96aec24f95b8b18ad093e51a))
+
 # 1.0.0 (2026-01-02)
 
 
