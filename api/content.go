@@ -32,9 +32,9 @@ type Article struct {
 	Title        string  `json:"title"`
 	Summary      string  `json:"summary"`
 	Content      string  `json:"content"` // Full markdown content
-	Author       string  `json:"author"`
-	ReadTime     int     `json:"read_time"` // Minutes
-	Tags         string  `json:"tags"`      // Comma-separated tags
+	Author       string  `json:"author_name"`
+	ReadTime     int     `json:"read_time_minutes"` // Minutes
+	Tags         string  `json:"tags"`              // Comma-separated tags
 	PublishedAt  *string `json:"published_at"`
 	IsBookmarked bool    `json:"is_bookmarked"` // Only present for authenticated users
 }
