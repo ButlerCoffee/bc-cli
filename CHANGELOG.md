@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/ButlerCoffee/bc-cli/compare/v1.1.2...v1.1.3) (2026-01-02)
+
+
+### Bug Fixes
+
+* ensure the minutes read works ([ccbb172](https://github.com/ButlerCoffee/bc-cli/commit/ccbb172dfcf2c33a1174bffe70425029d7025720))
+
 ## [1.1.2](https://github.com/ButlerCoffee/bc-cli/compare/v1.1.1...v1.1.2) (2026-01-02)
 
 
