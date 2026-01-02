@@ -40,11 +40,6 @@ jobs:
             @semantic-release/git \
             @semantic-release/github
 
-      - name: Build Go binary
-        run: |
-          go mod tidy
-          make compile
-
       - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,79 +57,13 @@ jobs:
             echo "version=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build binaries for multiple platforms
+      - name: Run GoReleaser
         if: steps.check_version.outputs.version != ''
-        run: |
-          VERSION=${{ steps.check_version.outputs.version }}
-          echo "Building version $VERSION"
-          BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          GIT_COMMIT=$(git rev-parse --short HEAD)
-
-          # Create dist directory
-          mkdir -p dist
-
-          # Build for different platforms
-          LDFLAGS="-X github.com/hassek/bc-cli/cmd.Version=$VERSION -X github.com/hassek/bc-cli/cmd.GitCommit=$GIT_COMMIT -X github.com/hassek/bc-cli/cmd.BuildDate=$BUILD_DATE"
-
-          GOOS=darwin GOARCH=amd64 go build -o dist/bc-cli-darwin-amd64 -ldflags "$LDFLAGS" .
-          GOOS=darwin GOARCH=arm64 go build -o dist/bc-cli-darwin-arm64 -ldflags "$LDFLAGS" .
-          GOOS=linux GOARCH=amd64 go build -o dist/bc-cli-linux-amd64 -ldflags "$LDFLAGS" .
-          GOOS=linux GOARCH=arm64 go build -o dist/bc-cli-linux-arm64 -ldflags "$LDFLAGS" .
-          GOOS=windows GOARCH=amd64 go build -o dist/bc-cli-windows-amd64.exe -ldflags "$LDFLAGS" .
-
-          # Create checksums
-          cd dist
-          sha256sum * > checksums.txt
-
-      - name: Upload release assets
-        if: steps.check_version.outputs.version != ''
-        uses: softprops/action-gh-release@v2
+        uses: goreleaser/goreleaser-action@v6
         with:
-          files: dist/*
-          tag_name: v${{ steps.check_version.outputs.version }}
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update Homebrew formula
-        if: steps.check_version.outputs.version != ''
-        env:
-          VERSION: ${{ steps.check_version.outputs.version }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-        run: |
-          # Extract checksums for macOS binaries
-          SHA256_AMD64=$(grep "bc-cli-darwin-amd64" dist/checksums.txt | awk '{print $1}')
-          SHA256_ARM64=$(grep "bc-cli-darwin-arm64" dist/checksums.txt | awk '{print $1}')
-
-          echo "AMD64 SHA256: $SHA256_AMD64"
-          echo "ARM64 SHA256: $SHA256_ARM64"
-
-          # Clone the homebrew tap repository
-          git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/ButlerCoffee/homebrew-tap.git tap-repo
-          cd tap-repo
-
-          # Copy the formula if it doesn't exist
-          if [ ! -f "Formula/bc-cli.rb" ]; then
-            mkdir -p Formula
-            cp ../homebrew/bc-cli.rb Formula/bc-cli.rb
-          fi
-
-          # Update the formula with new version and checksums
-          sed -i "s/version \".*\"/version \"${VERSION}\"/" Formula/bc-cli.rb
-          sed -i "s|releases/download/v[0-9.]\+/|releases/download/v${VERSION}/|g" Formula/bc-cli.rb
-          sed -i "s/sha256 \"SHA256_ARM64_PLACEHOLDER\"/sha256 \"${SHA256_ARM64}\"/" Formula/bc-cli.rb
-          sed -i "s/sha256 \"SHA256_AMD64_PLACEHOLDER\"/sha256 \"${SHA256_AMD64}\"/" Formula/bc-cli.rb
-          sed -i "s/sha256 \"[a-f0-9]\{64\}\".*# ARM64/sha256 \"${SHA256_ARM64}\" # ARM64/" Formula/bc-cli.rb
-          sed -i "s/sha256 \"[a-f0-9]\{64\}\".*# AMD64/sha256 \"${SHA256_AMD64}\" # AMD64/" Formula/bc-cli.rb
-
-          # Commit and push if there are changes
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/bc-cli.rb
-
-          if git diff --staged --quiet; then
-            echo "No changes to formula"
-          else
-            git commit -m "chore: update bc-cli formula to v${VERSION}"
-            git push origin main
-            echo "Formula updated successfully"
-          fi

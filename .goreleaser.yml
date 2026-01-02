@@ -1,0 +1,85 @@
+# GoReleaser configuration for bc-cli
+# Documentation: https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+
+builds:
+  - id: bc-cli
+    binary: bc-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/hassek/bc-cli/cmd.Version={{.Version}}
+      - -X github.com/hassek/bc-cli/cmd.GitCommit={{.ShortCommit}}
+      - -X github.com/hassek/bc-cli/cmd.BuildDate={{.Date}}
+
+archives:
+  - id: bc-cli
+    formats:
+      - binary
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  # Disable changelog generation since semantic-release handles this
+  disable: true
+
+release:
+  # GoReleaser will create the release and upload assets
+  github:
+    owner: ButlerCoffee
+    name: bc-cli
+  # Don't create a draft release
+  draft: false
+  # Don't mark as pre-release
+  prerelease: auto
+  # Use the tag name as release name
+  name_template: "{{.Tag}}"
+
+brews:
+  - # Repository to push the formula to
+    repository:
+      owner: ButlerCoffee
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+
+    # Formula name
+    name: bc-cli
+
+    # Path to formula in the tap repository
+    directory: Formula
+
+    # Git config for committing the formula
+    commit_author:
+      name: github-actions[bot]
+      email: github-actions[bot]@users.noreply.github.com
+
+    commit_msg_template: "chore: update {{ .ProjectName }} formula to {{ .Tag }}"
+
+    # Homebrew formula metadata
+    description: "Butler Coffee CLI - Discover coffee knowledge and manage subscriptions from your terminal"
+    homepage: "https://github.com/ButlerCoffee/bc-cli"
+    license: "MIT"
+
+    # Skip uploading to homebrew/core (we're using our own tap)
+    skip_upload: false
+
+    # Test command
+    test: |
+      assert_match "bc-cli version", shell_output("#{bin}/bc-cli --version")
